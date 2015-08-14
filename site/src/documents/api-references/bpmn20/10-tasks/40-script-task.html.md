@@ -42,6 +42,17 @@ For general information about scripting in the process engine, please see the [S
   </p>
 </div>
 
+### Decision Script Task
+
+Beside normal script languages you can also use Script Task to evaluate a DMN decision.
+
+```xml
+<scriptTask id="dmnScriptTask" name="Check order" scriptFormat="dmn"
+      camunda:resource="org/camunda/bpm/DmnScriptTaskTest.dmn10.xml"
+      camunda:resultVariable="decisionResult" />
+```
+
+
 ## Variables in scripts
 
 All process variables that are accessible through the execution that arrives in the script task can be used within the script. In the example below, the script variable `inputArray` is in fact a process variable (an array of integers).
@@ -108,6 +119,10 @@ In the above example, the result of the script execution (the value of the resol
   </p>
 </div>
 
+In case you evaluate a DMN decision using a Script Task the decision result
+will be *unpacked* to be easy accessible in the process.  The applied rules can
+be found in the [Business Rule Task][dmn-result-type] documentation.
+
 
 ## camunda Extensions
 
@@ -143,3 +158,4 @@ In the above example, the result of the script execution (the value of the resol
 [script-source]: ref:/guides/user-guide/#process-engine-scripting-script-source
 [user-guide]: ref:/guides/user-guide/
 [autostore-variables]: ref:/guides/migration-guide/#script-variable-storing
+[dmn-result-type]: ref:#tasks-business-rule-task-dmn-result-variable-type
