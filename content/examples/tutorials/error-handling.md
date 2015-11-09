@@ -14,8 +14,8 @@ menu:
 
 There are a couple of basic strategies to handle errors and exceptions within processes. The decision which strategy to use depends on:
 
- *   Technical vs. Business Errors: Does the error have some business meaning and causes an alternative process flow (like "item not on stock") or is it a technical malfunction (like "network currently down")?
- *   Explicit error handling or generic approach: For some situations you want to explicitly model what should happen in case of an error (typically for business errors). For a lot of situations you don't want to do that but have some generic mechanism which applies for errors, simplifying your process models (typical for technical errors, imagine you would have to model network outage on every task were it might possibly occur? You wouldn't be able to recognize your business process any more).
+ *   Technical vs. Business Errors: Does the error have some business meaning and causes an alternative process flow (e.g., "item not on stock") or is it a technical malfunction (e.g., "network currently down")?
+ *   Explicit error handling or generic approach: For some situations, you want to explicitly model what should happen in case of an error (typically for business errors). For a lot of situations, you don't want to do that. Instead, you have some generic mechanism which applies for errors, simplifying your process models (typical for technical errors, imagine you would have to model network outage on every task were it might possibly occur? You wouldn't be able to recognize your business process any more).
 
 In the context of the process engine, errors are normally raised as Java exceptions which you have to handle. Let's have a look at how to handle them.
 
@@ -27,27 +27,27 @@ Let's show this in a concrete example: the user gets an error dialog on the fron
 
 ## Async and Failed Jobs
 
-If you don't want the exception being shown to the user, one option is to make service calls which might cause an async error as described in [Transactions in Processes]({{< relref "user-guide/process-engine/transactions-in-processes.md" >}}). In that case the exception is stored in the process engine database and the [Job]({{< relref "user-guide/process-engine/the-job-executor.md" >}}) in the background is marked as failed (to be more precise, the exception is stored and some retry counter is decremented).
+If you don't want the exception to be shown to the user, one option is to make service calls which might cause an async error, as described in [Transactions in Processes]({{< relref "user-guide/process-engine/transactions-in-processes.md" >}}). In that case, the exception is stored in the process engine database and the [Job]({{< relref "user-guide/process-engine/the-job-executor.md" >}}) in the background is marked as failed (to be more precise, the exception is stored and some retry counter is decremented).
 
-In the example above this means that the user will not see an error but an "everything successful" dialog. The exception is stored on the job. Now either a clever retry strategy will automatically re-trigger the job later on (when the network is available again) or an operator needs to have a look at the error and trigger an additional retry. This is shown later in more detail.
+In the example above, this means that the user will not see an error but an "everything successful" dialog. The exception is stored on the job. Now either a clever retry strategy will automatically re-trigger the job later on (when the network is available again), or an operator must have a look at the error and trigger an additional retry. This is shown later in more detail.
 
-This strategy is pretty powerful and applied often in real-life projects, however, it still hides the error in the BPMN diagram, so for business errors which you want to be visible in the process diagram, it would be better to use [Error Events]({{< relref "examples/tutorials/error-handling.md#bpmn-2-0-error-event" >}}).
+This strategy is pretty powerful and is often applied in real-life projects. However, it still hides the error in the BPMN diagram. So, for business errors which you want to be visible in the process diagram, it would be better to use [Error Events]({{< relref "examples/tutorials/error-handling.md#bpmn-2-0-error-event" >}}).
 
 ## Catch Exception and use Data Based XOR-Gateway
 
-If you call Java Code which can throw an exception, you can catch the exception within the Java Delegate, CDI Bean or whatsoever. Maybe it is already sufficient to log some information and go on, meaning that you ignore the error. More often you write the result into a process variable and model an XOR-Gateway later in the process flow to take a different path if that error occurs.
+If you call Java Code which can throw an exception, you can catch the exception within the Java Delegate, CDI Bean or whatsoever. Maybe it is already sufficient to log some information and go on, meaning that you ignore the error. More often, you write the result into a process variable and model an XOR-Gateway later in the process flow to take a different path, should that error occur.
 
-In that case you model the error handling explicitly in the process model but you make it look like a normal result and not like an error. From a business perspective it is not an error but a result, so the decision should not be made lightly. A rule of thumb is that results can be handled this way, exceptional errors should not. However, the BPMN perspective does not always have to match the technical implementation.
+In that case, you model the error handling explicitly in the process model. However, you make it look like a normal result and not like an error. From a business perspective, it is not an error but a result, so the decision should not be made lightly. A rule of thumb is that results can be handled this way, exceptional errors should not. However, the BPMN perspective does not always have to match the technical implementation.
 
 Example:
 
 {{< img src="../img/error-result-xor.png" title="Error Result XOR" >}}
 
-We trigger a "check data completeness" task. The Java Service might throw a "DataIncompleteException". However, if we check for completeness, incomplete data is not an exception, but an expected result, so we prefer to use an XOR-Gateway in the process flow which evaluates a process variable, e.g., "#{dataComplete==false}".
+We trigger a "check data completeness" task. The Java Service might throw a "DataIncompleteException". However, if we check for completeness, incomplete data is not an exception. Instead, it is an expected result, so we prefer to use an XOR-Gateway in the process flow which evaluates a process variable, e.g., "#{dataComplete==false}".
 
 ## BPMN 2.0 Error Event
 
-The BPMN 2.0 error event gives you the possibility to explicitly model errors, tackling the use case of business errors. The most prominent example is the "intermediate catching error event", which can be attached to the boundary of an activity. Defining a boundary error event makes most sense on an embedded subprocess, a call activity or a Service Task. An error will cause the alternative process flow to be triggered:
+The BPMN 2.0 error event gives you the possibility to explicitly model errors, tackling the use case of business errors. The most prominent example is the "intermediate catching error event", which can be attached to the boundary of an activity. Defining a boundary error event makes most sense on an embedded subprocess, a call activity, or a Service Task. An error will cause the alternative process flow to be triggered:
 
 {{< img src="../img/bpmn.boundary.error.event.png" title="Error Boundary Event" >}}
 
@@ -56,7 +56,7 @@ See the [Error Events]({{< relref "reference/bpmn20/events/error-events.md" >}})
 
 ## BPMN 2.0 Compensation and Business Transactions
 
-BPMN 2.0 transactions and compensations allow you to model business transaction boundaries (however, not in a technical ACID manner) and make sure already executed actions are compensated during a rollback. Compensation means to make the effect of the action invisible, e.g. book in goods if you have previously booked out the goods. See the [BPMN Compensation event]({{< relref "reference/bpmn20/events/cancel-and-compensation-events.md" >}}) and the [BPMN Transaction Subprocess]({{< relref "reference/bpmn20/subprocesses/transaction-subprocess.md" >}}) sections of the [BPMN 2.0 Implementation Reference]({{< relref "reference/bpmn20/index.md" >}}) for details.
+BPMN 2.0 transactions and compensations allow you to model business transaction boundaries (however, not in a technical ACID manner). They also let you make sure that already executed actions are compensated during a rollback. Compensation means to make the effect of the action invisible, e.g., in case you have previously booked out the goods, then book in the goods. See the [BPMN Compensation event]({{< relref "reference/bpmn20/events/cancel-and-compensation-events.md" >}}) and the [BPMN Transaction Subprocess]({{< relref "reference/bpmn20/subprocesses/transaction-subprocess.md" >}}) sections of the [BPMN 2.0 Implementation Reference]({{< relref "reference/bpmn20/index.md" >}}) for details.
 
 
 # Monitoring and Recovery Strategies
