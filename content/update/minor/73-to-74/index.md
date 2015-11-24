@@ -25,7 +25,7 @@ Noteworthy new Features and Changes in 7.4:
 
 * **DMN 1.1:** [Decision Model And Notation][dmn-ref] is a standard for defining and executing business rules in the form of decision and integrates with [BPMN][bpmn-ref] and [CMMN][cmmn-ref]. Camunda BPM 7.4 implements this standard for decision tables and therefore introduces new artifacts and extends the database schema during upgrade. If you do not plan to use CMMN, the DMN-related tables will stay empty.
 * **CMMN 1.1:**
-* **Logging:** Camunda 7.4 uses SLF4J as a logging API instead of JDK logging as before. This introduces the SLF4J API as a core dependency for the process engine. (TODO: note about clash with your SLF4J version and link to somewhere)
+* **Logging:** Camunda 7.4 uses SLF4J as a logging API instead of JDK logging as before. This introduces the SLF4J API as a core dependency for the process engine. Please refer to the application server specific sub-chapters of this document for implications on updating a full distribution installation. Also see the User Guide for [information on how to setup logging]({{< relref "user-guide/logging.md" >}}).
 
 [dmn-ref]: {{< relref "reference/dmn11/index.md" >}}
 [cmmn-ref]: {{< relref "reference/cmmn11/index.md" >}}
@@ -110,6 +110,12 @@ There are no new mandatory dependencies but some artifacts have new transitive d
 ## Special Considerations
 
 This section describes changes in the engine's default behavior. While the changes are reasonable, your implementation may rely on the previous default behavior. Thus, the previous behavior can be restored by explicitly setting a configuration option. Accordingly, this section applies to any embedded process engine but is not required for a successful upgrade.
+
+### Logging
+
+As of 7.4 the process engine uses SLF4J for logging. The SLF4J api is pulled in transitively by the process engine maven module.
+However, in order for any actual logging to occur, you need to add an slf4j compatible logging backend. Please refer to the user guide for
+[Information on how to setup logging]({{< relref "user-guide/logging.md" >}}).
 
 ### Task Query Expressions
 
